@@ -1,69 +1,105 @@
 import axios from 'axios';
 
-// Configurar la URL base según el entorno
+// Configuración de axios
 const API_URL = import.meta.env.PROD 
   ? 'https://backend-swqp.onrender.com'
-  : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
+  : 'http://localhost:3000';
 
-console.log('Entorno:', import.meta.env.PROD ? 'Producción' : 'Desarrollo');
 console.log('API URL:', API_URL);
 
-// Configurar axios con las cabeceras por defecto
-axios.defaults.headers.common['Content-Type'] = 'application/json';
-axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  withCredentials: true
+});
 
-export const getSucursales = async () => {
+// Interceptor para logging
+api.interceptors.request.use(request => {
+  console.log('Iniciando petición:', request.url);
+  return request;
+});
+
+api.interceptors.response.use(
+  response => {
+    console.log('Respuesta recibida:', response.status);
+    return response;
+  },
+  error => {
+    console.error('Error en la petición:', error.response?.status, error.response?.data);
+    return Promise.reject(error);
+  }
+);
+
+// Funciones para obtener datos
+export const fetchBranches = async () => {
   try {
     console.log('Intentando obtener sucursales...');
-    console.log('URL completa:', `${API_URL}/api/tenants`);
-    
-    const response = await axios.get(`${API_URL}/api/tenants`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      withCredentials: false
-    });
-
-    // Verificar si la respuesta es HTML (error)
-    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-      throw new Error('Respuesta inválida del servidor');
-    }
-
+    const response = await api.get('/api/tenants');
     console.log('Datos de sucursales:', response.data);
-    return response;
+    
+    if (!Array.isArray(response.data)) {
+      console.error('La respuesta no es un array:', response.data);
+      throw new Error('Formato de respuesta inválido');
+    }
+    
+    return response.data;
   } catch (error) {
-    console.error('Error completo:', error);
-    console.error('URL que falló:', `${API_URL}/api/tenants`);
+    console.error('Error al obtener sucursales:', error);
     throw error;
   }
 };
 
-export const getMenus = async (tenantId) => {
+export const fetchMenu = async (tenantId) => {
   try {
-    console.log('Obteniendo menú para tenant:', tenantId);
-    console.log('URL completa:', `${API_URL}/api/menus/${tenantId}`);
-    
-    const response = await axios.get(`${API_URL}/api/menus/${tenantId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      withCredentials: false
-    });
-
-    // Verificar si la respuesta es HTML (error)
-    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-      throw new Error('Respuesta inválida del servidor');
-    }
-
-    return response;
+    const response = await api.get(`/api/menu/${tenantId}`);
+    return response.data;
   } catch (error) {
-    console.error('Error al obtener menús:', error);
-    console.error('URL que falló:', `${API_URL}/api/menus/${tenantId}`);
+    console.error('Error al obtener el menú:', error);
+    throw error;
+  }
+};
+
+export const fetchCategories = async (tenantId) => {
+  try {
+    const response = await api.get(`/api/categorias/${tenantId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener categorías:', error);
+    throw error;
+  }
+};
+
+export const fetchReservations = async (tenantId) => {
+  try {
+    const response = await api.get(`/api/reservas/${tenantId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener reservas:', error);
+    throw error;
+  }
+};
+
+export const createReservation = async (reservationData) => {
+  try {
+    const response = await api.post('/api/reservas', reservationData);
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear reserva:', error);
+    throw error;
+  }
+};
+
+export const fetchAvailableTables = async (tenantId, date, time) => {
+  try {
+    const response = await api.get(`/api/mesas/disponibles/${tenantId}`, {
+      params: { date, time }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener mesas disponibles:', error);
     throw error;
   }
 }; 

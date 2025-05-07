@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import logo from "../assets/logo-guss.png";
 import fondo from "../assets/fondo-dashboard.png";
 import qrPago from "../assets/Qr empresa.png";
-import { getSucursales, getMenus } from "../api";
+import { getSucursales, getMenus, fetchBranches, fetchMenu, fetchAvailableTables, createReservation } from "../api";
 import axios from 'axios';
 
 const ChatBot = () => {
@@ -53,42 +53,13 @@ const ChatBot = () => {
   };
 
   // Obtener mesas disponibles del backend
-  const fetchMesasDisponibles = async (tenantId) => {
+  const fetchMesasDisponibles = async () => {
     try {
-      const API_URL = import.meta.env.PROD 
-        ? 'https://backend-swqp.onrender.com'
-        : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
-
-      console.log('Obteniendo mesas disponibles para tenant:', tenantId);
-      const response = await axios.get(`${API_URL}/api/mesas/disponibles/${tenantId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        withCredentials: false
-      });
-
-      // Verificar si la respuesta es HTML (error)
-      if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-        throw new Error('Respuesta inválida del servidor');
-      }
-      
-      if (response.data && Array.isArray(response.data)) {
-        setMesasDisponibles(response.data);
-      } else {
-        console.error('Formato de respuesta de mesas inválido:', response.data);
-        setMessages(prev => [
-          ...prev,
-          { from: "bot", text: "Error al cargar las mesas disponibles. Por favor, intenta de nuevo." }
-        ]);
-      }
+      const mesas = await fetchAvailableTables(selectedBranch, selectedDate, selectedTime);
+      setMesasDisponibles(mesas);
     } catch (error) {
       console.error('Error al obtener mesas:', error);
-      setMessages(prev => [
-        ...prev,
-        { from: "bot", text: "Error al cargar las mesas disponibles. Por favor, intenta de nuevo." }
-      ]);
+      addMessage('Lo siento, hubo un error al verificar las mesas disponibles. Por favor, intenta de nuevo.', 'bot');
     }
   };
 
@@ -254,52 +225,21 @@ const ChatBot = () => {
 
   const guardarReserva = async () => {
     try {
-      const API_URL = import.meta.env.PROD 
-        ? 'https://backend-swqp.onrender.com'
-        : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
-
-      const reserva = {
-        ...reservaData,
-        tenant_id: selectedSucursal.id
+      const reservaData = {
+        tenantId: selectedBranch,
+        nombre: nombre,
+        fecha: selectedDate,
+        hora: selectedTime,
+        personas: selectedPeople,
+        mesaId: selectedTable,
+        estado: 'pendiente'
       };
 
-      console.log('Enviando reserva:', reserva);
-      const response = await axios.post(`${API_URL}/api/reservas`, reserva, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        withCredentials: false
-      });
-
-      // Verificar si la respuesta es HTML (error)
-      if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-        throw new Error('Respuesta inválida del servidor');
-      }
-      
-      if (response.data) {
-        setStep(0);
-        setReservaData({
-          cliente_nombre: "",
-          personas: "",
-          fecha: "",
-          hora: "",
-          mesa_id: "",
-          estado: "pendiente",
-          tenant_id: null
-        });
-        setShowQR(false);
-        setWaitingForPayment(false);
-        setWaitingForComprobante(false);
-        setReservaPendiente(null);
-      }
+      await createReservation(reservaData);
+      addMessage('¡Reserva guardada exitosamente!', 'bot');
     } catch (error) {
       console.error('Error al guardar la reserva:', error);
-      setMessages(prev => [
-        ...prev,
-        { from: "bot", text: "Lo siento, hubo un error al procesar tu reserva. Por favor, intenta de nuevo." }
-      ]);
+      addMessage('Lo siento, hubo un error al guardar tu reserva. Por favor, intenta de nuevo.', 'bot');
     }
   };
 
@@ -631,7 +571,7 @@ Mesa: Mesa ${mesaSeleccionada.numero} (${mesaSeleccionada.capacidad} personas)
             const menuResponse = await getMenus(suggestedSucursal.id);
             const items = menuResponse.data;
             setMenuItems(items);
-            await fetchMesasDisponibles(suggestedSucursal.id);
+            await fetchMesasDisponibles();
             
             let menuMessage = `¡Perfecto! Has seleccionado la sucursal ${suggestedSucursal.nombre}.\n\nAhora, toca los platos que te gustaría ordenar. Puedes seleccionar varios platos y luego confirmar tu selección:`;
             
@@ -679,7 +619,7 @@ Mesa: Mesa ${mesaSeleccionada.numero} (${mesaSeleccionada.capacidad} personas)
           const menuResponse = await getMenus(sucursalEncontrada.id);
           const items = menuResponse.data;
           setMenuItems(items);
-          await fetchMesasDisponibles(sucursalEncontrada.id);
+          await fetchMesasDisponibles();
           
           let menuMessage = `¡Perfecto! Has seleccionado la sucursal ${sucursalEncontrada.nombre}.\n\nAhora, toca los platos que te gustaría ordenar. Puedes seleccionar varios platos y luego confirmar tu selección:`;
           

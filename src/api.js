@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_URL = 'https://backend-swqp.onrender.com/api'; // Asegúrate de que la ruta sea correcta
+const API_URL = '/api';
 
-export const getSucursales = () => axios.get(`${API_URL}/sucursales`);
-export const getMenus = (sucursalId) => axios.get(`${API_URL}/menus/${sucursalId}`); 
+export const getSucursales = () => {
+  return axios.get(`${API_URL}/tenants`);
+};
+
+export const getMenus = (tenantId) => {
+  return axios.get(`${API_URL}/menu/${tenantId}`);
+}; 

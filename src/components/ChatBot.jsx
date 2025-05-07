@@ -60,8 +60,19 @@ const ChatBot = () => {
         : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
 
       console.log('Obteniendo mesas disponibles para tenant:', tenantId);
-      const response = await axios.get(`${API_URL}/api/mesas/disponibles/${tenantId}`);
-      console.log('Respuesta de mesas disponibles:', response.data);
+      const response = await axios.get(`${API_URL}/api/mesas/disponibles/${tenantId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        withCredentials: false
+      });
+
+      // Verificar si la respuesta es HTML (error)
+      if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+        throw new Error('Respuesta inválida del servidor');
+      }
       
       if (response.data && Array.isArray(response.data)) {
         setMesasDisponibles(response.data);
@@ -253,7 +264,19 @@ const ChatBot = () => {
       };
 
       console.log('Enviando reserva:', reserva);
-      const response = await axios.post(`${API_URL}/api/reservas`, reserva);
+      const response = await axios.post(`${API_URL}/api/reservas`, reserva, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        withCredentials: false
+      });
+
+      // Verificar si la respuesta es HTML (error)
+      if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+        throw new Error('Respuesta inválida del servidor');
+      }
       
       if (response.data) {
         setStep(0);

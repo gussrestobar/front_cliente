@@ -56,7 +56,7 @@ const ChatBot = () => {
   const fetchMesasDisponibles = async (tenantId) => {
     try {
       console.log('Obteniendo mesas disponibles para tenant:', tenantId);
-      const response = await axios.get(`/api/mesas/disponibles/${tenantId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/mesas/disponibles/${tenantId}`);
       console.log('Respuesta de mesas disponibles:', response.data);
       
       if (response.data && Array.isArray(response.data)) {
@@ -245,7 +245,7 @@ const ChatBot = () => {
       };
 
       console.log('Enviando reserva:', reserva);
-      const response = await axios.post(`/api/reservas`, reserva);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/reservas`, reserva);
       
       if (response.data) {
         setStep(0);

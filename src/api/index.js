@@ -1,25 +1,46 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Configurar la URL base según el entorno
+const API_URL = import.meta.env.PROD 
+  ? 'https://backend-swqp.onrender.com'
+  : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
+
+console.log('Entorno:', import.meta.env.PROD ? 'Producción' : 'Desarrollo');
+console.log('API URL:', API_URL);
 
 export const getSucursales = async () => {
   try {
     console.log('Intentando obtener sucursales...');
-    const response = await axios.get(`${API_URL}/api/tenants`);
+    console.log('URL completa:', `${API_URL}/api/tenants`);
+    const response = await axios.get(`${API_URL}/api/tenants`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
     console.log('Datos de sucursales:', response.data);
     return response;
   } catch (error) {
     console.error('Error completo:', error);
+    console.error('URL que falló:', `${API_URL}/api/tenants`);
     throw error;
   }
 };
 
 export const getMenus = async (tenantId) => {
   try {
-    const response = await axios.get(`${API_URL}/api/menus/${tenantId}`);
+    console.log('Obteniendo menú para tenant:', tenantId);
+    console.log('URL completa:', `${API_URL}/api/menus/${tenantId}`);
+    const response = await axios.get(`${API_URL}/api/menus/${tenantId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
     return response;
   } catch (error) {
     console.error('Error al obtener menús:', error);
+    console.error('URL que falló:', `${API_URL}/api/menus/${tenantId}`);
     throw error;
   }
 }; 

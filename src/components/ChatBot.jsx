@@ -55,8 +55,12 @@ const ChatBot = () => {
   // Obtener mesas disponibles del backend
   const fetchMesasDisponibles = async (tenantId) => {
     try {
+      const API_URL = import.meta.env.PROD 
+        ? 'https://backend-swqp.onrender.com'
+        : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
+
       console.log('Obteniendo mesas disponibles para tenant:', tenantId);
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/mesas/disponibles/${tenantId}`);
+      const response = await axios.get(`${API_URL}/api/mesas/disponibles/${tenantId}`);
       console.log('Respuesta de mesas disponibles:', response.data);
       
       if (response.data && Array.isArray(response.data)) {
@@ -239,13 +243,17 @@ const ChatBot = () => {
 
   const guardarReserva = async () => {
     try {
+      const API_URL = import.meta.env.PROD 
+        ? 'https://backend-swqp.onrender.com'
+        : import.meta.env.VITE_API_URL || 'https://backend-swqp.onrender.com';
+
       const reserva = {
         ...reservaData,
         tenant_id: selectedSucursal.id
       };
 
       console.log('Enviando reserva:', reserva);
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/reservas`, reserva);
+      const response = await axios.post(`${API_URL}/api/reservas`, reserva);
       
       if (response.data) {
         setStep(0);

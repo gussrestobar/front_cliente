@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import logo from "../assets/logo-guss.png";
 import fondo from "../assets/fondo-dashboard.png";
 import qrPago from "../assets/Qr empresa.png";
-import { getSucursales, getMenus, fetchBranches, fetchMenu, fetchAvailableTables, createReservation } from "../api";
+import { fetchBranches, fetchMenu, fetchAvailableTables, createReservation } from "../api/index.js";
 import axios from 'axios';
+import { getSucursales, getMenus } from "../api";
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([]);
@@ -55,7 +56,15 @@ const ChatBot = () => {
   // Obtener mesas disponibles del backend
   const fetchMesasDisponibles = async () => {
     try {
-      const mesas = await fetchAvailableTables(selectedBranch, selectedDate, selectedTime);
+      if (!selectedSucursal || !reservaData.fecha || !reservaData.hora) {
+        console.log('Faltan datos necesarios para obtener mesas disponibles');
+        return;
+      }
+      const mesas = await fetchAvailableTables(
+        selectedSucursal.id,
+        reservaData.fecha,
+        reservaData.hora
+      );
       setMesasDisponibles(mesas);
     } catch (error) {
       console.error('Error al obtener mesas:', error);

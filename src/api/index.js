@@ -18,17 +18,27 @@ const api = axios.create({
 
 // Interceptor para logging
 api.interceptors.request.use(request => {
-  console.log('Iniciando petición:', request.url);
+  console.log('Iniciando petición a:', request.url);
+  console.log('Headers:', request.headers);
   return request;
 });
 
 api.interceptors.response.use(
   response => {
-    console.log('Respuesta recibida:', response.status);
+    console.log('Respuesta recibida:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
     return response;
   },
   error => {
-    console.error('Error en la petición:', error.response?.status, error.response?.data);
+    console.error('Error en la petición:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers,
+      config: error.config
+    });
     return Promise.reject(error);
   }
 );
@@ -38,17 +48,32 @@ export const fetchBranches = async () => {
   try {
     console.log('Intentando obtener sucursales...');
     const response = await api.get('/api/tenants');
-    console.log('Datos de sucursales:', response.data);
+    
+    if (!response.data) {
+      throw new Error('No se recibieron datos del servidor');
+    }
     
     if (!Array.isArray(response.data)) {
       console.error('La respuesta no es un array:', response.data);
+      if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+        throw new Error('El servidor devolvió una página HTML en lugar de datos JSON. Verifica que el servidor esté funcionando correctamente.');
+      }
       throw new Error('Formato de respuesta inválido');
     }
     
     return response.data;
   } catch (error) {
     console.error('Error al obtener sucursales:', error);
-    throw error;
+    if (error.response) {
+      // El servidor respondió con un código de error
+      throw new Error(`Error del servidor: ${error.response.status} - ${error.response.data?.error || 'Error desconocido'}`);
+    } else if (error.request) {
+      // La petición fue hecha pero no se recibió respuesta
+      throw new Error('No se pudo conectar con el servidor. Verifica que el backend esté funcionando.');
+    } else {
+      // Error al configurar la petición
+      throw error;
+    }
   }
 };
 

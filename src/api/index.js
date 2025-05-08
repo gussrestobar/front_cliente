@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Configuración de axios
-const API_URL = import.meta.env.PROD 
-  ? 'https://backend-swqp.onrender.com'
-  : 'http://localhost:3000';
+// Configuración de axios - Siempre usar el backend en producción
+const API_URL = 'https://backend-swqp.onrender.com/api';
 
 console.log('API URL:', API_URL);
 
@@ -51,7 +49,7 @@ api.interceptors.response.use(
 export const fetchBranches = async () => {
   try {
     console.log('Intentando obtener sucursales...');
-    const response = await api.get('/api/tenants');
+    const response = await api.get('/tenants');
     
     if (!response.data) {
       throw new Error('No se recibieron datos del servidor');
@@ -83,7 +81,7 @@ export const fetchBranches = async () => {
 
 export const fetchMenu = async (tenantId) => {
   try {
-    const response = await api.get(`/api/menu/${tenantId}`);
+    const response = await api.get(`/menu/${tenantId}`);
     return response.data;
   } catch (error) {
     console.error('Error al obtener el menú:', error);
@@ -93,7 +91,7 @@ export const fetchMenu = async (tenantId) => {
 
 export const fetchCategories = async (tenantId) => {
   try {
-    const response = await api.get(`/api/categorias/${tenantId}`);
+    const response = await api.get(`/categorias/${tenantId}`);
     return response.data;
   } catch (error) {
     console.error('Error al obtener categorías:', error);
@@ -103,7 +101,7 @@ export const fetchCategories = async (tenantId) => {
 
 export const fetchReservations = async (tenantId) => {
   try {
-    const response = await api.get(`/api/reservas/${tenantId}`);
+    const response = await api.get(`/reservas/${tenantId}`);
     return response.data;
   } catch (error) {
     console.error('Error al obtener reservas:', error);
@@ -113,7 +111,7 @@ export const fetchReservations = async (tenantId) => {
 
 export const createReservation = async (reservationData) => {
   try {
-    const response = await api.post('/api/reservas', reservationData);
+    const response = await api.post('/reservas', reservationData);
     return response.data;
   } catch (error) {
     console.error('Error al crear reserva:', error);
@@ -123,7 +121,7 @@ export const createReservation = async (reservationData) => {
 
 export const fetchAvailableTables = async (tenantId, date, time) => {
   try {
-    const response = await api.get(`/api/mesas/disponibles/${tenantId}`, {
+    const response = await api.get(`/mesas/disponibles/${tenantId}`, {
       params: { date, time }
     });
     return response.data;

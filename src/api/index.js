@@ -119,14 +119,21 @@ export const createReservation = async (reservationData) => {
   }
 };
 
-export const fetchAvailableTables = async (tenantId, date, time) => {
+// Obtener mesas disponibles del backend
+export const fetchAvailableTables = async (tenantId) => {
   try {
-    const response = await api.get(`/mesas/disponibles/${tenantId}`, {
-      params: { date, time }
-    });
-    return response.data;
+    console.log('Obteniendo mesas disponibles para tenant:', tenantId);
+    const response = await api.get(`/mesas/${tenantId}`);
+    console.log('Respuesta de mesas disponibles:', response.data);
+    
+    if (response.data && Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      console.error('Formato de respuesta de mesas inválido:', response.data);
+      throw new Error('Error al cargar las mesas disponibles');
+    }
   } catch (error) {
-    console.error('Error al obtener mesas disponibles:', error);
+    console.error('Error al obtener mesas:', error);
     throw error;
   }
 }; 

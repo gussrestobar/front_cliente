@@ -242,7 +242,16 @@ const ChatBot = () => {
     try {
       const reserva = {
         ...reservaData,
-        tenant_id: selectedSucursal.id
+        tenant_id: selectedSucursal.id,
+        platos: selectedItems.map(item => ({
+          id: item.id,
+          nombre: item.nombre,
+          precio: item.precio
+        })),
+        total: selectedItems.reduce((sum, item) => {
+          const precio = parseFloat(item.precio) || 0;
+          return sum + precio;
+        }, 0)
       };
 
       console.log('Enviando reserva:', reserva);
@@ -259,6 +268,7 @@ const ChatBot = () => {
           estado: "pendiente",
           tenant_id: null
         });
+        setSelectedItems([]);
         setShowQR(false);
         setWaitingForPayment(false);
         setWaitingForComprobante(false);

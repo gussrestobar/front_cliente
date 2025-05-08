@@ -13,7 +13,8 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: true
+  withCredentials: true,
+  timeout: 10000
 });
 
 // Interceptor para logging
@@ -39,6 +40,9 @@ api.interceptors.response.use(
       headers: error.response?.headers,
       config: error.config
     });
+    if (error.response?.data?.includes('<!DOCTYPE html>')) {
+      throw new Error('El servidor devolvió una página HTML en lugar de datos JSON. Verifica que el servidor esté funcionando correctamente.');
+    }
     return Promise.reject(error);
   }
 );
